@@ -27,8 +27,8 @@ while True:
         obj = controller.Model() # reini obj
         filePath = values["browse_file"]
         if len(filePath) > 0 :
-            if 'xlsx' not in filename:
-                filename = obj.fileConversion(filePath)
+            if 'xlsx' not in filePath:
+                filePath = obj.fileConversion(filePath)
             
             # set file path to class variable, get file properties and read file
             obj.setFile(filePath)
