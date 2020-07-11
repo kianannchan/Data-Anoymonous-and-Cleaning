@@ -18,6 +18,7 @@ view.py (View) -> interface.py (View)
 view.py (View) -> controller.py (Model/ Controller) -> Cipher.py
 ```
 
+
 #
 ### Screenshot
 ![Image of Landing](https://i.ibb.co/hcCQGfz/landing.png)
@@ -29,7 +30,15 @@ view.py (View) -> controller.py (Model/ Controller) -> Cipher.py
 *Upon excel content loaded, listbox will be populated according to the likeness between default and loaded columns. Now all elements are enabled*
 
 ![Image progress bar](https://i.ibb.co/z8GFVWp/encryption.png)
+
 *Progress bar indicator reflected on the interface during encryption/ decryption process*
+
+#
+### Usage
+```
+pip install -r requirements.txt
+python view.py
+```
 
 #
 ### Development
