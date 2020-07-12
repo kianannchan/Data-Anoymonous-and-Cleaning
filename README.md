@@ -1,6 +1,7 @@
 # Data Anoymonous and Cleaning (DAAC)
-*Data Anoymonous and Cleaning (DAAC) is a tool developed in python 3.7.8. Objective of the tool allows the user to removed unecessay 
-columns or hide sensitive data within the application itself*
+*Data Anoymonous and Cleaning (DAAC) is a tool developed in python 3.7.8. Objective of the tool allows the user to removed unecessary 
+columns or/and hide sensitive data within the application itself. After that, the processed file could be transferred to other system safely
+without revealing sensitive data. To recover the anoymonous data, the file could be feed into the same tool by providing the original secret key*
 
 
 #
@@ -12,8 +13,9 @@ columns or hide sensitive data within the application itself*
 - [x] Dynamically predefine list by files
 
 #
-### Encryption Time Taken
-> It takes an average of 71s to complete encrypting 5 columns of 500,000 rows 
+### Encryption and Decryption
+> Uses Fernet Key Cryptography - implementation of symmetric (also known as “secret key”) authenticated cryptography. 
+> It takes an average of 71s to complete encrypting 5 columns of 500,000 rows (or 2,500,000 cells)
 
 #
 ### Software Model
@@ -21,7 +23,6 @@ columns or hide sensitive data within the application itself*
 view.py (View) -> interface.py (View)
 view.py (View) -> controller.py (Model/ Controller) -> Cipher.py
 ```
-
 
 #
 ### Screenshot
