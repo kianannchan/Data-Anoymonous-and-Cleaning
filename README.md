@@ -9,7 +9,11 @@ columns or hide sensitive data within the application itself*
 - [x] Predefined encrypted or removed keywords and load into the interface
 - [x] Prpgressive progress bar
 - [x] Encrypted columns values are reverable with the correct passphrase provided
+- [x] Dynamically predefine list by files
 
+#
+### Encryption Time Taken
+> It takes an average of 71s to complete encrypting 5 columns of 500,000 rows 
 
 #
 ### Software Model
@@ -34,5 +38,5 @@ view.py (View) -> controller.py (Model/ Controller) -> Cipher.py
 #
 ### Development
 - [ ] Support Multiple Page and parse them as singular page
-- [ ] Dynamically predefine list by files
+- [ ] Integrated parallelism pandas mechanism. i.e. Dask
 

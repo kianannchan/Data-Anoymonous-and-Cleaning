@@ -42,8 +42,11 @@ class interfaceClass:
     
     # popup message
     def popup(self, message):
-        return sg.popup_ok(message)
+        sg.popup_ok(message)
     
+    def popup_yesno(self, message):
+        return sg.popup_yes_no(message)  # Shows Yes and No buttons
+
     # tray message
     def tray(self, message):
         sg.SystemTray.notify('Notification', message )

@@ -1,10 +1,13 @@
-import pandas as pd
+
 import Cipher
 from pathlib import Path
 import openpyxl
 import json
 import os
+import pandas as pd
 import time
+import numpy as np
+
 
 class Settings:
     def __init__(self):
@@ -35,29 +38,30 @@ class Model(Settings):
     param: fname: String
     output: new_fname: String
     """
-    def fileConversion(self, fname):
+    def fileConversion(self, filePath):
         self.createFile = True
-        new_fname = Path(fname).stem + '.xlsx'
-        df = pd.read_excel(fname)
-        df.to_excel(new_fname, index=False)
+        new_fname = Path(filePath).stem + '.xlsx'
+        self.df.to_excel(new_fname, index=False)
+        self.filePath = new_fname
         return new_fname
     
     """
-    Set file path to class variable
+    Read and Set file path to class variable
     param: fname: String
     output: None
     """
-    def setFile(self,fname):
-        self.filePath = fname
+    def setFile(self,filePath):
+        self.filePath = filePath
+        self.df = pd.read_excel(filePath)
+        #self.df = pd.concat(pd.read_excel(filePath, sheet_name=None), ignore_index=True)
+
 
     """
-    Read excel content and parse as class Dataframe
+    Parse as class Dataframe
     param: None
     output: None
     """
     def readContent(self):
-        self.df = pd.read_excel(self.filePath)
-        #self.df = pd.concat(pd.read_excel(filename, sheet_name=None))
         if self.mode == 1:
             columns = self.df.columns.ravel()
             self.encapsulationList = self.filter_view(columns, self.defaultEncapsulationList)
@@ -80,8 +84,9 @@ class Model(Settings):
         temp = []
         for default in defaultList:
             for file_col in columnList:
-                if default.lower() in file_col.lower():
-                    temp.append(file_col)
+                if (default.lower() in file_col.lower()): 
+                    if(file_col not in temp and file_col not in self.encapsulationList and file_col not in self.removeList):
+                        temp.append(file_col)
         return temp
     
        
@@ -103,10 +108,12 @@ class Model(Settings):
         totalcol = len(self.encapsulationList)
         total = totalrow * totalcol
         curr = 0
-
         for column in (self.encapsulationList):
             for index, row in self.df.iterrows():
-                self.df.at[index, column]=  self.cipherObj.encrypt(self.df.at[index, column])
+                # check if column is non str; convert entire column to str
+                if (type(self.df.at[index, column]) == np.int64 ):
+                    self.df[[column]] = self.df[[column]].astype(str)
+                self.df.at[index, column]=  self.cipherObj.encrypt(str(self.df.at[index, column]))
                 if (curr % 100 == 0):
                     progress_bar.UpdateBar(((curr/ total))* 99)
                 curr = curr+1
@@ -164,7 +171,7 @@ class Model(Settings):
             self.mode = 1
 
     """
-    Write df to excel, Remove file, if it have being created
+    Write df to excel
     param: None
     output: None
     """
@@ -173,9 +180,42 @@ class Model(Settings):
         filename_new = '%s_%s.xlsx' % (filename,str(int(round(time.time() * 1000))))
         self.df.to_excel (filename_new, index = False, header=True)
         self.setAttribute(filename_new)
-        self.removeFile()
-        
+    
+    """
+    Remove file, if it have being created
+    param: None
+    output: None
+    """
     def removeFile(self):
         if self.createFile == True:
             os.remove(self.filePath)
-
+    
+    """
+    Create new predefine data to JSON file
+    param: None
+    output: None
+    """      
+    def writeDefaultList(self):
+        new_remove = []
+        new_encap = []
+        [new_remove.append(x) for x in (" ".join(self.removeList)).split() if x not in new_remove]
+        [new_encap.append(x) for x in (" ".join(self.encapsulationList)).split() if x not in new_encap]
+        settings = {
+            'default_remove': new_remove,
+            'default_encap': new_encap
+        }
+        with open('settings.json', 'w') as json_file:
+            json.dump(settings, json_file)
+            
+    
+    """
+    Read predefine JSON file and update to default list
+    param: None
+    output: None
+    """    
+    def readDefaultList(self):
+        if (Path('settings.json').exists()):
+            with open('settings.json') as f:
+                data = json.load(f)
+            self.defaultRemovedList = (data['default_remove'])
+            self.defaultEncapsulationList = (data['default_encap'])

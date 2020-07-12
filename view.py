@@ -24,16 +24,23 @@ while True:
         break
     # browse file
     if event == 'browse_file':
+        start = time.time()
         obj = controller.Model() # reini obj
         filePath = values["browse_file"]
+        
+        obj.setFile(filePath)
         if len(filePath) > 0 :
             if 'xlsx' not in filePath:
                 filePath = obj.fileConversion(filePath)
+                #print ('time taken: %s' % (time.time() - start))
             
+            start = time.time()
             # set file path to class variable, get file properties and read file
-            obj.setFile(filePath)
             obj.getAttribute()
+            obj.readDefaultList()
             obj.readContent()
+            #print ('time taken: %s' % (time.time() - start))
+
             
             # enabling buttons and list on interface
             progress_bar.UpdateBar(0)
@@ -131,12 +138,18 @@ while True:
         if obj.mode == 1:
             obj.dropColumns()
             obj.encapColumns(progress_bar)
+            response = interfaceObj.popup_yesno('Update Keywords?')
+            if (response == 'Yes'):
+                obj.writeDefaultList()
+                
         # decryption mode
         else:
             obj.decapColumns(progress_bar)
         # call write method
-        obj.writeFile()    
+        obj.writeFile()
+        obj.removeFile()
         progress_bar.UpdateBar(100)
         interfaceObj.tray('Done processing! Time taken: %0.2fs ' %  (time.time() - start))
+
 
 window.Close()
