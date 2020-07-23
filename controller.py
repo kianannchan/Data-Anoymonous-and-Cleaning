@@ -32,39 +32,76 @@ class Model(Settings):
         self.filePath = ''
         self.mode = 1
         self.createFile = False
-    
-    """
-    Converting non xlsx format, i.e csv, xls
-    param: fname: String
-    output: new_fname: String
-    """
-    def fileConversion(self, filePath):
-        self.createFile = True
-        new_fname = Path(filePath).stem + '.xlsx'
-        self.df.to_excel(new_fname, index=False)
-        self.filePath = new_fname
-        return new_fname
-    
+
     """
     Read and Set file path to class variable
     param: fname: String
     output: None
     """
-    def setFile(self,filePath):
+    def setFilePath(self,filePath):
         self.filePath = filePath
-        self.df = pd.read_excel(filePath)
-        #self.df = pd.concat(pd.read_excel(filePath, sheet_name=None), ignore_index=True)
+        if 'xls' in filePath:
+            self.df = pd.read_excel(filePath, sheet_name=None, ignore_index=True)
+        else:
+            self.df = pd.read_csv(filePath)
 
 
     """
-    Parse as class Dataframe
+    Determine source file header exist
+    param: None
+    output: Bool
+    """
+    def detectCommonHeader(self):
+        for sheet in range(len(self.df)):
+            col= self.df[list(self.df.keys())[sheet]].columns.tolist()
+            if sheet != len(self.df) - 1:
+                col2= self.df[list(self.df.keys())[sheet + 1]].columns.tolist()
+                if (col != col2):
+                    return False
+        return True
+    
+    """
+    Parse sheets data into singular sheet base on common header
+    param: None
+    output: None
+    """  
+    def SubsequentHeader(self):
+        self.df = pd.concat(self.df)
+        self.df.replace(np.nan, '' , inplace=True)
+
+    
+    """
+    Parse sheets data into singular sheet base on casading mode
+    param: None
+    output: None
+    """    
+    def noSubsequentHeader(self):
+        col= self.df[list(self.df.keys())[0]].columns.tolist()
+        list_DF =[]
+
+        # accessing from data
+        for index in range(len(self.df)):
+            subsequent_frame = self.df[list(self.df.keys())[index]]
+            subsequent_frame.loc[-1] = subsequent_frame.columns.tolist()
+            subsequent_frame.index = subsequent_frame.index + 1  # shifting index
+            subsequent_frame.sort_index(inplace=True) 
+            subsequent_frame.columns = col
+            list_DF.append(subsequent_frame)
+
+        self.df = pd.concat(list_DF, ignore_index= True)
+        self.df = self.df[1:]  
+
+
+
+    """
+    Extracting Default List to Encryption and Removed List
     param: None
     output: None
     """
     def readContent(self):
+        columns = self.df.columns.tolist()
+        self.encapsulationList = self.filter_view(columns, self.defaultEncapsulationList)
         if self.mode == 1:
-            columns = self.df.columns.ravel()
-            self.encapsulationList = self.filter_view(columns, self.defaultEncapsulationList)
             self.removeList = self.filter_view(columns, self.defaultRemovedList)
     
     """
@@ -85,7 +122,7 @@ class Model(Settings):
         for default in defaultList:
             for file_col in columnList:
                 if (default.lower() in file_col.lower()): 
-                    if(file_col not in temp and file_col not in self.encapsulationList and file_col not in self.removeList):
+                    if(file_col not in temp and ( file_col not in self.encapsulationList and file_col not in self.removeList)):
                         temp.append(file_col)
         return temp
     
@@ -109,11 +146,11 @@ class Model(Settings):
         total = totalrow * totalcol
         curr = 0
         for column in (self.encapsulationList):
+            self.df[[column]] = self.df[[column]].astype(str)
             for index, row in self.df.iterrows():
-                # check if column is non str; convert entire column to str
-                if (type(self.df.at[index, column]) == np.int64 ):
-                    self.df[[column]] = self.df[[column]].astype(str)
-                self.df.at[index, column]=  self.cipherObj.encrypt(str(self.df.at[index, column]))
+                colValue = str(self.df.at[index, column])
+                if len(colValue) > 0:
+                        self.df.at[index, column]=  self.cipherObj.encrypt((colValue))
                 if (curr % 100 == 0):
                     progress_bar.UpdateBar(((curr/ total))* 99)
                 curr = curr+1
@@ -164,7 +201,7 @@ class Model(Settings):
         if workbook.properties.keywords != None:
             attribute = (eval(workbook.properties.keywords))
             mode_file = attribute['mode']
-            self.encapsulationList = attribute['value']
+            self.defaultEncapsulationList = attribute['value']
             if mode_file == 'Encryption':
                 self.mode = 2
         else:
@@ -181,14 +218,7 @@ class Model(Settings):
         self.df.to_excel (filename_new, index = False, header=True)
         self.setAttribute(filename_new)
     
-    """
-    Remove file, if it have being created
-    param: None
-    output: None
-    """
-    def removeFile(self):
-        if self.createFile == True:
-            os.remove(self.filePath)
+
     
     """
     Create new predefine data to JSON file
@@ -217,5 +247,12 @@ class Model(Settings):
         if (Path('settings.json').exists()):
             with open('settings.json') as f:
                 data = json.load(f)
-            self.defaultRemovedList = (data['default_remove'])
-            self.defaultEncapsulationList = (data['default_encap'])
+                self.defaultRemovedList = (data['default_remove'])
+                self.defaultEncapsulationList = (data['default_encap'])
+
+
+if __name__ == '__main__':
+    pass
+
+
+    

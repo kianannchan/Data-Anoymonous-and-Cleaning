@@ -11,6 +11,7 @@ without revealing sensitive data. To recover the anoymonous data, the file could
 - [x] Prpgressive progress bar
 - [x] Encrypted columns values are reverable with the correct passphrase provided
 - [x] Dynamically predefine list by files
+- [x] Support Multiple Page and parse them as singular page
 
 #
 ### Encryption and Decryption
@@ -47,6 +48,5 @@ python view.py
 
 #
 ### Development
-- [ ] Support Multiple Page and parse them as singular page
 - [ ] Integrated parallelism pandas mechanism. i.e. Dask
 

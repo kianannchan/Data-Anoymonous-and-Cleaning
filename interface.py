@@ -4,7 +4,7 @@ class interfaceClass:
     # constructor declare elements
     def __init__ (self):
         self.browse_input = sg.InputText('', size=(70,1), readonly= True, enable_events=True, key='browse_file')
-        self.browse_button = sg.FileBrowse('Browse', size=(20,1), target='browse_file')
+        self.browse_button = sg.FileBrowse('Browse', size=(20,1), target='browse_file', file_types=(("Excel File", "*.xlsx;*.xls;*.csv"),))
         self.encap_list_default = sg.Listbox(values=(), size=(36, 10), key = 'encap_list_default')
         self.encap_add = sg.Button('<<', size=(10,2), key='remove_en', pad=(0,0))
         self.encap_remove = sg.Button('>>', size=(10,2), key='add_en', pad=(0,30))
@@ -17,6 +17,8 @@ class interfaceClass:
         self.passwordLabel = sg.Text('Password')
         self.password_Input = sg.InputText('', key='password', password_char='*', size=(60,1), disabled=True)
         self.process_button = sg.Button('Process', size=(20,1), key='process', disabled=True)
+        self.dropdown_label = sg.Text('Merge Data Option')
+
 
     # layout declaration
     def layout(self):

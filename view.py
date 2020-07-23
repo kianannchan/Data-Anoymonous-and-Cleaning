@@ -13,6 +13,24 @@ window = interfaceObj.load()
 def update_list(element, new_val):
     window.FindElement(element).Update(values=new_val)
     
+def checkForHeader(isFileHeader, createFileBase = ''):
+    if (isFileHeader):
+        response =interfaceObj.popup_yesno(createFileBase + 'Headers detected for all sheet. Proceed with this mode?')
+        if (response == 'Yes'):
+            user_response = 1
+        else:
+            user_response = 2
+    else:
+        response =interfaceObj.popup_yesno(createFileBase + 'No common header found. Proceed with casading mode?')
+        if response == 'Yes':
+            user_response = 2
+        else:
+            user_response =1
+    if user_response == 1:
+        obj.SubsequentHeader()
+    else:
+        obj.noSubsequentHeader()
+ 
 while True:
     # listen for event emitter and its value        
     event, values = window.Read()  
@@ -20,28 +38,36 @@ while True:
 
     # window close
     if event in (None, 'Exit'):
-        obj.removeFile()
         break
     # browse file
     if event == 'browse_file':
         start = time.time()
         obj = controller.Model() # reini obj
         filePath = values["browse_file"]
-        
-        obj.setFile(filePath)
-        if len(filePath) > 0 :
-            if 'xlsx' not in filePath:
-                filePath = obj.fileConversion(filePath)
-                #print ('time taken: %s' % (time.time() - start))
-            
-            start = time.time()
-            # set file path to class variable, get file properties and read file
-            obj.getAttribute()
-            obj.readDefaultList()
-            obj.readContent()
-            #print ('time taken: %s' % (time.time() - start))
 
+        # file is selected to proceed
+        if len(filePath) > 0 :
+            # set and read file
+            obj.setFilePath(filePath)
             
+            # if file is processed, likely xlsx format
+            # return mode type if keyword dictionary is found
+            # mode 1 = Encryption Mode, mode 2 = Decryption Mode
+            if 'xlsx' in filePath:
+                obj.getAttribute()
+
+            # check if merging is necessary
+            if obj.mode == 1:
+                obj.readDefaultList()
+                if 'csv' not in filePath:
+                    isFileHeader = obj.detectCommonHeader()
+                    checkForHeader(isFileHeader)
+            else:
+                obj.SubsequentHeader()
+                
+            # Filter encryption and Remove List 
+            obj.readContent()
+
             # enabling buttons and list on interface
             progress_bar.UpdateBar(0)
             window.FindElement('process').Update(disabled=False)
@@ -130,6 +156,7 @@ while True:
     # listen for process button
     elif event == 'process':
         start = time.time()
+
         # set password if fields is not blank
         if len(values['password'])> 0:
             obj.setPassword(values['password'])
@@ -147,9 +174,9 @@ while True:
             obj.decapColumns(progress_bar)
         # call write method
         obj.writeFile()
-        obj.removeFile()
         progress_bar.UpdateBar(100)
         interfaceObj.tray('Done processing! Time taken: %0.2fs ' %  (time.time() - start))
 
 
 window.Close()
+
